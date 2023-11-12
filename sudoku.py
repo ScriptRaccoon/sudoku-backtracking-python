@@ -1,7 +1,6 @@
-"""Solving algorithm for Sudokus via generators (no explicit backtracking)"""
+"""Solving algorithm for Sudokus via backtracking and generators"""
 
 from collections.abc import Iterator
-from copy import deepcopy
 from time import perf_counter
 from samples import sudoku2 as sudoku
 
@@ -31,16 +30,15 @@ def get_coord(board: list[list[int]]) -> None | tuple[int, int]:
 
 def is_valid(row: int, col: int, num: int, board: list[list[int]]) -> bool:
     """Checks if a potential number is valid at a given position in the board"""
-    row_values = board[row]
-    col_values = [board[i][col] for i in range(SIZE)]
     row_start = BLOCK_SIZE * (row // BLOCK_NUMBER)
     col_start = BLOCK_SIZE * (col // BLOCK_NUMBER)
-    block_values = [
-        board[row_start + i][col_start + j]
+    return all(
+        num != board[row][i] and num != board[i][col] for i in range(SIZE)
+    ) and all(
+        num != board[row_start + i][col_start + j]
         for i in range(BLOCK_SIZE)
         for j in range(BLOCK_SIZE)
-    ]
-    return not (num in row_values or num in col_values or num in block_values)
+    )
 
 
 def get_solutions(board: list[list[int]]) -> Iterator[list[list[int]]]:
@@ -53,9 +51,9 @@ def get_solutions(board: list[list[int]]) -> Iterator[list[list[int]]]:
         for val in range(1, SIZE + 1):
             ok = is_valid(row, col, val, board)
             if ok:
-                board_copy = deepcopy(board)
-                board_copy[row][col] = val
-                yield from get_solutions(board_copy)
+                board[row][col] = val
+                yield from get_solutions(board)
+                board[row][col] = 0
 
 
 def main() -> None:
