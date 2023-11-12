@@ -26,11 +26,15 @@ def get_coord(board: list[list[int]]) -> None | tuple[int, int]:
 
 def is_valid(row: int, col: int, num: int, board: list[list[int]]) -> bool:
     """Checks if a potential number is valid at a given position in the board"""
+    if num in board[row]:
+        return False
+    if num in [board[i][col] for i in range(0, 9)]:
+        return False
     row_start = 3 * (row // 3)
     col_start = 3 * (col // 3)
-    return all(num != board[row][i] and num != board[i][col] for i in range(9)) and all(
-        num != board[row_start + i][col_start + j] for i in range(3) for j in range(3)
-    )
+    return num not in [
+        board[row_start + i][col_start + j] for i in range(0, 3) for j in range(0, 3)
+    ]
 
 
 def get_solutions(board: list[list[int]]) -> Iterator[list[list[int]]]:
@@ -40,9 +44,9 @@ def get_solutions(board: list[list[int]]) -> Iterator[list[list[int]]]:
         yield board
         return
     row, col = coord
-    for val in range(1, 10):
-        if is_valid(row, col, val, board):
-            board[row][col] = val
+    for num in range(1, 10):
+        if is_valid(row, col, num, board):
+            board[row][col] = num
             yield from get_solutions(board)
             board[row][col] = 0
 
