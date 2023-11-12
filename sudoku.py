@@ -2,11 +2,7 @@
 
 from collections.abc import Iterator
 from time import perf_counter
-from samples import sudoku2 as sudoku
-
-BLOCK_SIZE = 3
-BLOCK_NUMBER = 3
-SIZE = BLOCK_SIZE * BLOCK_NUMBER
+from samples import sudoku1 as sudoku
 
 
 def print_sudoku(board: list[list[int]]) -> None:
@@ -21,8 +17,8 @@ def print_sudoku(board: list[list[int]]) -> None:
 
 def get_coord(board: list[list[int]]) -> None | tuple[int, int]:
     """Gets the coordinate of an empty cell if there is one"""
-    for row in range(SIZE):
-        for col in range(SIZE):
+    for row in range(9):
+        for col in range(9):
             if board[row][col] == 0:
                 return (row, col)
     return None
@@ -30,14 +26,10 @@ def get_coord(board: list[list[int]]) -> None | tuple[int, int]:
 
 def is_valid(row: int, col: int, num: int, board: list[list[int]]) -> bool:
     """Checks if a potential number is valid at a given position in the board"""
-    row_start = BLOCK_SIZE * (row // BLOCK_NUMBER)
-    col_start = BLOCK_SIZE * (col // BLOCK_NUMBER)
-    return all(
-        num != board[row][i] and num != board[i][col] for i in range(SIZE)
-    ) and all(
-        num != board[row_start + i][col_start + j]
-        for i in range(BLOCK_SIZE)
-        for j in range(BLOCK_SIZE)
+    row_start = 3 * (row // 3)
+    col_start = 3 * (col // 3)
+    return all(num != board[row][i] and num != board[i][col] for i in range(9)) and all(
+        num != board[row_start + i][col_start + j] for i in range(3) for j in range(3)
     )
 
 
@@ -46,21 +38,23 @@ def get_solutions(board: list[list[int]]) -> Iterator[list[list[int]]]:
     coord = get_coord(board)
     if coord is None:
         yield board
-    else:
-        row, col = coord
-        for val in range(1, SIZE + 1):
-            ok = is_valid(row, col, val, board)
-            if ok:
-                board[row][col] = val
-                yield from get_solutions(board)
-                board[row][col] = 0
+        return
+    row, col = coord
+    for val in range(1, 10):
+        if is_valid(row, col, val, board):
+            board[row][col] = val
+            yield from get_solutions(board)
+            board[row][col] = 0
 
 
 def main() -> None:
     """Prints the solutions to a sample sudoku"""
+
     print("\nSudoku:\n")
     print_sudoku(sudoku)
+
     print("Solutions:\n")
+
     number_solutions = 0
     solutions = get_solutions(sudoku)
 
