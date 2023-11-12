@@ -1,7 +1,9 @@
+"""Solving algorithm for Sudokus via generators (no explicit backtracking)"""
+
 from collections.abc import Iterator
 from copy import deepcopy
 from time import perf_counter
-from samples import sudoku1
+from samples import sudoku2 as sudoku
 
 BLOCK_SIZE = 3
 BLOCK_NUMBER = 3
@@ -9,6 +11,7 @@ SIZE = BLOCK_SIZE * BLOCK_NUMBER
 
 
 def print_sudoku(board: list[list[int]]) -> None:
+    """Prints a sudoku to the console"""
     for row in board:
         for num in row:
             print(num if num > 0 else "*", end="")
@@ -17,56 +20,66 @@ def print_sudoku(board: list[list[int]]) -> None:
     print()
 
 
-def get_empty_coord(board: list[list[int]]) -> None | tuple[int, int]:
-    for y in range(SIZE):
-        for x in range(SIZE):
-            if board[y][x] == 0:
-                return (x, y)
+def get_coord(board: list[list[int]]) -> None | tuple[int, int]:
+    """Gets the coordinate of an empty cell if there is one"""
+    for row in range(SIZE):
+        for col in range(SIZE):
+            if board[row][col] == 0:
+                return (row, col)
     return None
 
 
-def is_valid(x: int, y: int, val: int, board: list[list[int]]) -> bool:
-    row = board[y]
-    col = [board[i][x] for i in range(SIZE)]
-    x0 = BLOCK_SIZE * (x // BLOCK_NUMBER)
-    y0 = BLOCK_SIZE * (y // BLOCK_NUMBER)
-    block = [
-        board[y0 + i][x0 + j] for i in range(BLOCK_SIZE) for j in range(BLOCK_SIZE)
+def is_valid(row: int, col: int, num: int, board: list[list[int]]) -> bool:
+    """Checks if a potential number is valid at a given position in the board"""
+    row_values = board[row]
+    col_values = [board[i][col] for i in range(SIZE)]
+    row_start = BLOCK_SIZE * (row // BLOCK_NUMBER)
+    col_start = BLOCK_SIZE * (col // BLOCK_NUMBER)
+    block_values = [
+        board[row_start + i][col_start + j]
+        for i in range(BLOCK_SIZE)
+        for j in range(BLOCK_SIZE)
     ]
-    return not (val in row or val in col or val in block)
+    return not (num in row_values or num in col_values or num in block_values)
 
 
-def solution_generator(board: list[list[int]]) -> Iterator[list[list[int]]]:
-    coord = get_empty_coord(board)
+def get_solutions(board: list[list[int]]) -> Iterator[list[list[int]]]:
+    """Generator recursively yielding completions of a Sudoku board"""
+    coord = get_coord(board)
     if coord is None:
         yield board
     else:
-        x, y = coord
+        row, col = coord
         for val in range(1, SIZE + 1):
-            ok = is_valid(x, y, val, board)
+            ok = is_valid(row, col, val, board)
             if ok:
-                _board = deepcopy(board)
-                _board[y][x] = val
-                yield from solution_generator(_board)
+                board_copy = deepcopy(board)
+                board_copy[row][col] = val
+                yield from get_solutions(board_copy)
 
 
-def main():
-    sudoku_to_solve = sudoku1
+def main() -> None:
+    """Prints the solutions to a sample sudoku"""
     print("\nSudoku:\n")
-    print_sudoku(sudoku_to_solve)
+    print_sudoku(sudoku)
     print("Solutions:\n")
     number_solutions = 0
-    solutions = solution_generator(sudoku_to_solve)
+    solutions = get_solutions(sudoku)
+
     start_time = perf_counter()
+
     for solution in solutions:
         number_solutions += 1
         print_sudoku(solution)
+
     end_time = perf_counter()
-    rounded_time = format(end_time - start_time, ".3f")
+
+    message = f"Found {number_solutions} solution"
     if number_solutions > 1:
-        print(f"There are {number_solutions} solutions.")
-    else:
-        print(f"There is {number_solutions} solution.")
+        message += "s"
+    print(message)
+
+    rounded_time = format(end_time - start_time, ".3f")
     print(f"Ellapsed time: {rounded_time}")
 
 
