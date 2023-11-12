@@ -2,7 +2,7 @@
 
 from collections.abc import Iterator
 from time import perf_counter
-from samples import sudoku1 as sudoku
+from samples import medium_sudoku as sudoku
 
 
 def print_sudoku(board: list[list[int]]) -> None:
