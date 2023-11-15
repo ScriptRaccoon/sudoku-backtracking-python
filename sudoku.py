@@ -2,7 +2,7 @@
 
 from collections.abc import Iterator
 from time import perf_counter
-from samples import medium_sudoku as sudoku
+from samples import hard_sudoku as sudoku
 
 
 def print_sudoku(board: list[list[int]]) -> None:
@@ -15,13 +15,24 @@ def print_sudoku(board: list[list[int]]) -> None:
     print()
 
 
-def get_coord(board: list[list[int]]) -> None | tuple[int, int]:
-    """Gets the coordinate of an empty cell if there is one"""
+def get_next_cell(board: list[list[int]]) -> None | tuple[int, int, list[int]]:
+    """Gets the coordinate of the empty cell (if there is one) with the least
+    number of possible candidates as well as the list of these candidates"""
+    best_coord: None | tuple[int, int] = None
+    best_candidates: None | list[int] = None
     for row in range(9):
         for col in range(9):
             if board[row][col] == 0:
-                return (row, col)
-    return None
+                candidates = [
+                    num for num in range(1, 10) if is_valid(row, col, num, board)
+                ]
+                if best_candidates is None or len(candidates) < len(best_candidates):
+                    best_coord = (row, col)
+                    best_candidates = candidates
+    if best_coord is None:
+        return None
+    row, col = best_coord
+    return row, col, best_candidates
 
 
 def is_valid(row: int, col: int, num: int, board: list[list[int]]) -> bool:
@@ -39,16 +50,15 @@ def is_valid(row: int, col: int, num: int, board: list[list[int]]) -> bool:
 
 def get_solutions(board: list[list[int]]) -> Iterator[list[list[int]]]:
     """Generator recursively yielding completions of a Sudoku board"""
-    coord = get_coord(board)
-    if coord is None:
+    cell = get_next_cell(board)
+    if cell is None:
         yield board
         return
-    row, col = coord
-    for num in range(1, 10):
-        if is_valid(row, col, num, board):
-            board[row][col] = num
-            yield from get_solutions(board)
-            board[row][col] = 0
+    row, col, candidates = cell
+    for num in candidates:
+        board[row][col] = num
+        yield from get_solutions(board)
+        board[row][col] = 0
 
 
 def main() -> None:
