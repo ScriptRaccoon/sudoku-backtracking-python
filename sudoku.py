@@ -22,13 +22,14 @@ def get_next_cell(board: list[list[int]]) -> None | tuple[int, int, list[int]]:
     best_candidates: None | list[int] = None
     for row in range(9):
         for col in range(9):
-            if board[row][col] == 0:
-                candidates = [
-                    num for num in range(1, 10) if is_valid(row, col, num, board)
-                ]
-                if best_candidates is None or len(candidates) < len(best_candidates):
-                    best_coord = (row, col)
-                    best_candidates = candidates
+            if board[row][col] > 0:
+                continue
+            candidates = [num for num in range(1, 10) if is_valid(row, col, num, board)]
+            if len(candidates) == 1:
+                return row, col, candidates
+            if best_candidates is None or len(candidates) < len(best_candidates):
+                best_coord = (row, col)
+                best_candidates = candidates
     if best_coord is None:
         return None
     row, col = best_coord
