@@ -1,7 +1,7 @@
 """tests for sudoku solver"""
 
 from sudoku import get_solutions
-from samples import medium_sudoku, sudoku_with_several_solutions
+from samples import medium_sudoku
 
 
 def test_medium_sudoku():

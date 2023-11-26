@@ -16,7 +16,7 @@ def print_sudoku(board: list[list[int]]) -> None:
 
 
 def get_next_cell(board: list[list[int]]) -> None | tuple[int, int, list[int]]:
-    """Gets the coordinate of the empty cell (if there is one) with the least
+    """Gets the coordinate of an empty cell (if there is one) with the least
     number of possible candidates as well as the list of these candidates"""
     best_coord: None | tuple[int, int] = None
     best_candidates: None | list[int] = None
@@ -36,6 +36,23 @@ def get_next_cell(board: list[list[int]]) -> None | tuple[int, int, list[int]]:
     return row, col, best_candidates
 
 
+# used in tutorial on youtube
+def get_next_cell_old(board: list[list[int]]) -> None | tuple[int, int, list[int]]:
+    """Gets the coordinate of any empty cell (if there is one) and
+    its list of candidates. This approach is much less efficient:
+    The "hard_sudoku" sample takes around 2 seconds to solve with "get_next_cell",
+    but around 17 seconds with "get_next_cell_old" here.
+    """
+    for row in range(9):
+        for col in range(9):
+            if board[row][col] == 0:
+                candidates = [
+                    num for num in range(1, 10) if is_valid(row, col, num, board)
+                ]
+                return row, col, candidates
+    return None
+
+
 def is_valid(row: int, col: int, num: int, board: list[list[int]]) -> bool:
     """Checks if a potential number is valid at a given position in the board"""
     if num in board[row]:
@@ -51,7 +68,7 @@ def is_valid(row: int, col: int, num: int, board: list[list[int]]) -> bool:
 
 def get_solutions(board: list[list[int]]) -> Iterator[list[list[int]]]:
     """Generator recursively yielding completions of a Sudoku board"""
-    cell = get_next_cell(board)
+    cell = get_next_cell(board)  # or: get_next_cell_old(board)
     if cell is None:
         yield board
         return
